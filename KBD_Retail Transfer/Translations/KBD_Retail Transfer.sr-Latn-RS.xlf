@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en-US" target-language="sr-Latn-RS" original="KBD_Retail Transfer.g.xlf">
+    <body>
+      <group id="body">
+        <trans-unit id="PageExtension 1800965772 - Control 3958843921 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve" al-object-target="Page 3870787835">
+          <source>Retail</source>
+          <target>Maloprodaja</target>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">PageExtension NPSRTR Location Card - Control Retail - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="TableExtension 907653528 - Field 3262286640 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve" al-object-target="Table 3891454143">
+          <source>Reclass Nos.</source>
+          <target>Brojevi automatskog prenosa MP na lokaciju</target>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">TableExtension NPSRTR Location - Field NPSRTR Reclass Nos. - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="TableExtension 907653528 - Field 2937292453 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve" al-object-target="Table 3891454143">
+          <source>Wholesale Location Code</source>
+          <target>Veleprodajna lokacija</target>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">TableExtension NPSRTR Location - Field NPSRTR Wholesale Location Code - Property Caption</note>
+        </trans-unit>
+      </group>
+    </body>
+  </file>
+</xliff>
