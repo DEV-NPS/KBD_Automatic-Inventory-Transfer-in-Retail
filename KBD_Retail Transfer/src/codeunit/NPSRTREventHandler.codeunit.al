@@ -14,6 +14,28 @@ codeunit 70006 "NPSRTR Event Handler"
         END;
         IF (SalesLine."Document Type" = SalesLine."Document Type"::Order) AND (SalesLine.Quantity > 0) THEN
             ItemReclas(ItemJnlPostLine, SalesHeader, SalesLine, ItemJournalLine."Source Code", TrackingSpecification);
+
+        //IF (SalesLine."Document Type" IN [SalesLine."Document Type"::"Return Order", SalesLine."Document Type"::"Credit Memo"]) THEN
+        //    ItemReclasCrMemo(ItemJnlPostLine, SalesHeader, SalesLine, ItemJournalLine."Source Code", TrackingSpecification);
+
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", OnAfterPostItemJnlLine, '', false, false)]
+    local procedure OnAfterPostItemJnlLineRetail(var ItemJournalLine: Record "Item Journal Line"; SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header"; WhseShip: Boolean; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; var TempHandlingSpecification: Record "Tracking Specification"; var ItemShptEntryNo: Integer)
+    var
+        Location: Record Location;
+        Currency: Record Currency;
+    begin
+        IF SalesHeader."Currency Code" = '' THEN
+            Currency.InitRoundingPrecision
+        ELSE BEGIN
+            Currency.GET(SalesHeader."Currency Code");
+            Currency.TESTFIELD("Amount Rounding Precision");
+        END;
+
+        IF (SalesLine."Document Type" IN [SalesLine."Document Type"::"Return Order", SalesLine."Document Type"::"Credit Memo"]) THEN
+            ItemReclasCrMemo(ItemJnlPostLine, SalesHeader, SalesLine, ItemJournalLine."Source Code", TempHandlingSpecification, ItemShptEntryNo);
+
     end;
 
 
@@ -122,6 +144,117 @@ codeunit 70006 "NPSRTR Event Handler"
                     ItemJnlLine."Invoiced Qty. (Base)" := ItemJnlLine.Quantity;
                     ItemJnlPostLine.RunWithCheck(ItemJnlLine);
                 UNTIL (ItemLedgerEntry.NEXT = 0) OR (QtyToShip = -SalesLine."Qty. to Ship (Base)");
+        END;
+    end;
+
+    local procedure ItemReclasCrMemo(VAR ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; SourceCode: Code[20]; var TrackingSpec: Record "Tracking Specification" temporary; ItemShptEntryNo: Integer)
+    var
+        LocationLoc: Record Location;
+        ItemLoc: Record Item;
+        ItemJnlLine: Record "Item Journal Line";
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        ValueEntry: Record "Value Entry";
+        ILE: Record "Item Ledger Entry";
+        ReservationEntry: Record "Reservation Entry";
+        ReservationEntry2: Record "Reservation Entry";
+        ExtDocNo: Code[20];
+        LastEntry: Integer;
+        EntryNo: Integer;
+        QtyToShip: Decimal;
+    begin
+        IF (SalesLine.Type <> SalesLine.Type::Item) THEN
+            EXIT;
+        LocationLoc.GET(SalesLine."Location Code");
+        IF NOT LocationLoc."NPSSPI Retail Location" THEN
+            EXIT;
+        LocationLoc.TESTFIELD("NPSRTR Reclass Nos.");
+        SalesLine.TESTFIELD("Bin Code", '');
+
+        ValueEntry.SETRANGE("Document Type", ValueEntry."Document Type"::"Sales Invoice");
+        ValueEntry.SETRANGE("Document No.", SalesHeader."Applies-to Doc. No.");
+        IF ValueEntry.FINDFIRST THEN
+            ILE.GET(ValueEntry."Item Ledger Entry No.");
+        ExtDocNo := ILE."Document No.";
+        QtyToShip := ILE.Quantity;
+
+        IF ItemLedgerEntry.FINDLAST THEN BEGIN
+            LastEntry := ItemLedgerEntry."Entry No.";
+            QtyToShip := ItemLedgerEntry.Quantity;
+        END ELSE
+            EXIT;
+
+        IF TrackingSpec.FINDSET THEN
+            REPEAT
+                ReservationEntry.RESET;
+                IF ReservationEntry.FINDLAST THEN
+                    EntryNo := ReservationEntry."Entry No.";
+                ItemJnlLine.INIT;
+                FillItemJnlLine(ItemJnlLine, SalesHeader, SalesLine, ItemLoc."Inventory Posting Group", LocationLoc."NPSRTR Reclass Nos.", SourceCode, ItemLoc."Base Unit of Measure", ExtDocNo);
+                ItemJnlLine."Location Code" := SalesLine."Location Code";
+                IF LocationLoc."NPSRTR Wholesale Location Code" <> '' THEN
+                    ItemJnlLine."New Location Code" := LocationLoc."NPSRTR Wholesale Location Code"
+                ELSE
+                    ItemJnlLine."New Location Code" := GetLocCodeFromTracking(SalesLine."No.", TrackingSpec."Lot No.");
+                ItemJnlLine.Quantity := TrackingSpec."Quantity (Base)";
+                ItemJnlLine."Invoiced Quantity" := ItemJnlLine.Quantity;
+                ItemJnlLine."Quantity (Base)" := ItemJnlLine.Quantity;
+                ItemJnlLine."Invoiced Qty. (Base)" := ItemJnlLine.Quantity;
+                ItemJnlLine."Applies-to Entry" := TrackingSpec."Item Ledger Entry No.";
+                ReservationEntry.INIT;
+                ReservationEntry."Entry No." := EntryNo + 1;
+                ReservationEntry.INSERT;
+                ReservationEntry."Reservation Status" := ReservationEntry."Reservation Status"::Prospect;
+                ReservationEntry."Creation Date" := WORKDATE;
+                ReservationEntry."Source Type" := DATABASE::"Item Journal Line";
+                ReservationEntry."Source Subtype" := ItemJnlLine."Entry Type"::Transfer;
+                ReservationEntry."Source ID" := '';
+                ReservationEntry."Source Ref. No." := ItemJnlLine."Line No.";
+                IF LocationLoc."NPSRTR Wholesale Location Code" <> '' THEN
+                    ReservationEntry.Validate("Location Code", LocationLoc."NPSRTR Wholesale Location Code")
+                ELSE
+                    ReservationEntry.Validate("Location Code", GetLocCodeFromTracking(SalesLine."No.", TrackingSpec."Lot No."));
+                ReservationEntry.VALIDATE("Item No.", ItemJnlLine."Item No.");
+                ReservationEntry.Validate("Appl.-to Item Entry", TrackingSpec."Item Ledger Entry No.");
+                ReservationEntry.VALIDATE("Quantity (Base)", -ItemJnlLine.Quantity);
+                ReservationEntry.VALIDATE("Qty. to Handle (Base)", -ItemJnlLine.Quantity);
+                ReservationEntry.VALIDATE(Quantity, -ItemJnlLine.Quantity);
+                ReservationEntry."Item Tracking" := ReservationEntry."Item Tracking"::"Lot No.";
+                ReservationEntry."Lot No." := TrackingSpec."Lot No.";
+                ReservationEntry."New Lot No." := TrackingSpec."Lot No.";
+                ReservationEntry."Expiration Date" := TrackingSpec."Expiration Date";
+                ReservationEntry."New Expiration Date" := TrackingSpec."Expiration Date";
+                ReservationEntry.MODIFY;
+
+                ItemJnlPostLine.RunWithCheck(ItemJnlLine);
+            UNTIL TrackingSpec.NEXT = 0
+        ELSE BEGIN
+            ILE.SETRANGE("Entry Type", ILE."Entry Type"::Transfer);
+            ILE.SETRANGE("External Document No.", ExtDocNo);
+            IF LocationLoc."NPSRTR Wholesale Location Code" <> '' THEN
+                ILE.SETRANGE("Location Code", LocationLoc."NPSRTR Wholesale Location Code")
+            ELSE
+                ILE.SETFILTER("Location Code", '<>%1', SalesLine."Location Code");
+            ILE.SETRANGE(Open, FALSE);
+            ILE.SETRANGE(Positive, FALSE);
+            ILE.SETFILTER("Entry No.", '<=%1', LastEntry);
+            IF ILE.FINDSET THEN
+                REPEAT
+                    ItemJnlLine.INIT;
+                    FillItemJnlLine(ItemJnlLine, SalesHeader, SalesLine, ItemLoc."Inventory Posting Group", LocationLoc."NPSRTR Reclass Nos.", SourceCode, ItemLoc."Base Unit of Measure", ExtDocNo);
+                    ItemJnlLine."Location Code" := SalesLine."Location Code";
+                    ItemJnlLine."New Location Code" := ILE."Location Code";
+                    ItemJnlLine."Lot No." := ILE."Lot No.";
+                    ItemJnlLine."New Lot No." := ILE."Lot No.";
+                    IF (QtyToShip + ILE.Quantity) > 0 THEN
+                        ItemJnlLine.Quantity := -ILE.Quantity
+                    ELSE
+                        ItemJnlLine.Quantity := -QtyToShip;
+                    QtyToShip -= ItemJnlLine.Quantity;
+                    ItemJnlLine."Invoiced Quantity" := ItemJnlLine.Quantity;
+                    ItemJnlLine."Quantity (Base)" := ItemJnlLine.Quantity;
+                    ItemJnlLine."Invoiced Qty. (Base)" := ItemJnlLine.Quantity;
+                    ItemJnlPostLine.RunWithCheck(ItemJnlLine);
+                UNTIL (ILE.NEXT = 0) OR (QtyToShip <= 0);
         END;
     end;
 
