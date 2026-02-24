@@ -245,11 +245,12 @@ codeunit 70006 "NPSRTR Event Handler"
                     ItemJnlLine."New Location Code" := ILE."Location Code";
                     ItemJnlLine."Lot No." := ILE."Lot No.";
                     ItemJnlLine."New Lot No." := ILE."Lot No.";
-                    IF (QtyToShip + ILE.Quantity) > 0 THEN
-                        ItemJnlLine.Quantity := -ILE.Quantity
-                    ELSE
-                        ItemJnlLine.Quantity := -QtyToShip;
-                    QtyToShip -= ItemJnlLine.Quantity;
+                    /*                     IF (QtyToShip + ILE.Quantity) > 0 THEN
+                                            ItemJnlLine.Quantity := -ILE.Quantity
+                                        ELSE
+                                            ItemJnlLine.Quantity := -QtyToShip; 
+                                        QtyToShip -= ItemJnlLine.Quantity;*/
+                    ItemJnlLine.Quantity := -ILE.Quantity;
                     ItemJnlLine."Invoiced Quantity" := ItemJnlLine.Quantity;
                     ItemJnlLine."Quantity (Base)" := ItemJnlLine.Quantity;
                     ItemJnlLine."Invoiced Qty. (Base)" := ItemJnlLine.Quantity;
