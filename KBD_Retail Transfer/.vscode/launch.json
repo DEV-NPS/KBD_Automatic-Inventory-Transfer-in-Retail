@@ -6,7 +6,7 @@
     "request": "launch",
     "type": "al",
     "environmentType": "Sandbox",
-    "environmentName": "KIBID_SB_20260121",
+    "environmentName": "KIBID_SB_20260223",
     "startupObjectId": 22,
     "startupObjectType": "Page",
     "breakOnError": "All",
