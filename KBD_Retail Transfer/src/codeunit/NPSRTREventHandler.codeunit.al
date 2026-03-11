@@ -230,6 +230,7 @@ codeunit 70006 "NPSRTR Event Handler"
         ELSE BEGIN
             ILE.SETRANGE("Entry Type", ILE."Entry Type"::Transfer);
             ILE.SETRANGE("External Document No.", ExtDocNo);
+            ILE.SETRANGE("Item No.", SalesLine."No.");
             IF LocationLoc."NPSRTR Wholesale Location Code" <> '' THEN
                 ILE.SETRANGE("Location Code", LocationLoc."NPSRTR Wholesale Location Code")
             ELSE
@@ -255,7 +256,20 @@ codeunit 70006 "NPSRTR Event Handler"
                     ItemJnlLine."Quantity (Base)" := ItemJnlLine.Quantity;
                     ItemJnlLine."Invoiced Qty. (Base)" := ItemJnlLine.Quantity;
                     ItemJnlPostLine.RunWithCheck(ItemJnlLine);
-                UNTIL (ILE.NEXT = 0) OR (QtyToShip <= 0);
+                UNTIL (ILE.NEXT = 0) OR (QtyToShip <= 0)
+            else begin
+                ItemJnlLine.INIT;
+                FillItemJnlLine(ItemJnlLine, SalesHeader, SalesLine, ItemLoc."Inventory Posting Group", LocationLoc."NPSRTR Reclass Nos.", SourceCode, ItemLoc."Base Unit of Measure", ExtDocNo);
+                ItemJnlLine."Location Code" := SalesLine."Location Code";
+                IF LocationLoc."NPSRTR Wholesale Location Code" <> '' THEN
+                    ItemJnlLine."New Location Code" := LocationLoc."NPSRTR Wholesale Location Code";
+                ItemJnlLine.Quantity := SalesLine.Quantity;
+                ItemJnlLine."Invoiced Quantity" := ItemJnlLine.Quantity;
+                ItemJnlLine."Quantity (Base)" := ItemJnlLine.Quantity;
+                ItemJnlLine."Invoiced Qty. (Base)" := ItemJnlLine.Quantity;
+                ItemJnlPostLine.RunWithCheck(ItemJnlLine);
+            end;
+
         END;
     end;
 
