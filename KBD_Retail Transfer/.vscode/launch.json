@@ -6,7 +6,7 @@
     "request": "launch",
     "type": "al",
     "environmentType": "Sandbox",
-    "environmentName": "KIBID_SB_20260223",
+    "environmentName": "KIBID_SB_20260409",
     "startupObjectId": 22,
     "startupObjectType": "Page",
     "breakOnError": "All",
@@ -18,3 +18,23 @@
     }
     ]    
 }
+/* {
+    "version": "0.2.0",
+    "configurations": [
+    {
+    "name": "Microsoft cloud sandbox",
+    "request": "launch",
+    "type": "al",
+    "environmentType": "Sandbox",
+    "environmentName": "BC28_Realese",
+    "startupObjectId": 22,
+    "startupObjectType": "Page",
+    "breakOnError": "All",
+    "launchBrowser": true,
+    "enableSqlInformationDebugger": true,
+    "tenant": "23a9d6c4-1ea0-4ae8-a8c2-77e92da3a391",
+    //"schemaUpdateMode": "ForceSync",
+    "enableLongRunningSqlStatements": true
+    }
+    ]    
+} */

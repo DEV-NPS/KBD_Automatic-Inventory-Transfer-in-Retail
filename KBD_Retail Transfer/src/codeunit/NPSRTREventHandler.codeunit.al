@@ -90,7 +90,7 @@ codeunit 70006 "NPSRTR Event Handler"
                 ReservationEntry."Reservation Status" := ReservationEntry."Reservation Status"::Prospect;
                 ReservationEntry."Creation Date" := WORKDATE;
                 ReservationEntry."Source Type" := DATABASE::"Item Journal Line";
-                ReservationEntry."Source Subtype" := ItemJnlLine."Entry Type"::Transfer;
+                ReservationEntry."Source Subtype" := ItemJnlLine."Entry Type"::Transfer.AsInteger();
                 ReservationEntry."Source ID" := '';
                 ReservationEntry."Source Ref. No." := ItemJnlLine."Line No.";
                 ReservationEntry.VALIDATE("Location Code", ItemJnlLine."Location Code");
@@ -206,7 +206,7 @@ codeunit 70006 "NPSRTR Event Handler"
                 ReservationEntry."Reservation Status" := ReservationEntry."Reservation Status"::Prospect;
                 ReservationEntry."Creation Date" := WORKDATE;
                 ReservationEntry."Source Type" := DATABASE::"Item Journal Line";
-                ReservationEntry."Source Subtype" := ItemJnlLine."Entry Type"::Transfer;
+                ReservationEntry."Source Subtype" := ItemJnlLine."Entry Type"::Transfer.AsInteger();
                 ReservationEntry."Source ID" := '';
                 ReservationEntry."Source Ref. No." := ItemJnlLine."Line No.";
                 IF LocationLoc."NPSRTR Wholesale Location Code" <> '' THEN
