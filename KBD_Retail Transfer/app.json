@@ -2,7 +2,8 @@
   "id": "7b57abe6-bc18-4f57-9d74-8ae4b8f3c8e8",
   "name": "KBD_Retail Transfer",
   "publisher": "NPS d.o.o.",
-  "version": "27.0.20260310.1",
+  "version": "27.0.20260512.1",
+  "runtime": "16.0",
   "brief": "",
   "description": "",
   "privacyStatement": "",
@@ -11,18 +12,18 @@
   "url": "",
   "logo": "",
   "dependencies": [
-        {
+    {
       "id": "22aea465-c444-4f74-b0b5-2b687048efab",
       "name": "Sales Price Inventory Value",
       "publisher": "NPS d.o.o.",
       "version": "24.0.25.0"
     },
-            {
+    {
       "id": "7f36ec52-4bd8-48d1-9158-358873ee804e",
       "name": "KIBID_Customization",
       "publisher": "NPS d.o.o.",
       "version": "27.0.20251226.1"
-    }
+    } 
   ],
   "screenshots": [],
   "platform": "1.0.0.0",
