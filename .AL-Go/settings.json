@@ -10,5 +10,7 @@
       "release_status": "latestBuild",
       "AuthTokenSecret": "GhTokenWorkflow"
     }
-  ]
+  ],
+  "useCompilerFolder": true,
+  "doNotPublishApps": true
 }
